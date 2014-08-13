@@ -40,6 +40,7 @@ def main():
     args = get_args()
 
     if args.districts:
+        print 'we are about to compress districts'
         process_units.run_foreach_module(unit_functions.compress_districts,remove_voterfile=args.remove_voterfile)
     if args.clean_schema or args.all:
         uf.clean_schema()

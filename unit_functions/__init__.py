@@ -3,11 +3,13 @@ from config import DATABASE_CONF, SCHEMA_TABLE_DICT,SCHEMA_TABLES
 import os
 
 def compress_districts(unit,remove_voterfile=False):
+    print 'running compress_districts'
     from config import locality_name,precinct_name,voterfile_delimiter,reduced_voterfile_name
     import csv
     from utils import cut
     from zipfile import ZipFile
     district_names = dict((e['name_column'],set()) for e in unit.ed_defs)
+    print 'dist_names: {}'.format(district_names)
     district_names.update({locality_name:set(),precinct_name:set()})
     vf_columns = set(['voterbase_id']+[column for column_tuple in district_names for column in column_tuple if type(column_tuple) == tuple] + [column for column in district_names if type(column) == str])
     zfile = ZipFile(unit.UNCOMPRESSED_VOTER_FILE_ZIP_LOCATION)
@@ -25,6 +27,7 @@ def compress_districts(unit,remove_voterfile=False):
         extra_district_dicts[k]=dict((l[0],l[v['column']-1]) for l in edcsv)
 
     with open(os.path.join(unit.__path__[0],reduced_voterfile_name),'w') as reduced_voterfile:
+        print 'reduced_vf: {}'.format(reduced_voterfile)
         reduced_voterfile_csv = csv.DictWriter(reduced_voterfile,fieldnames=column_indexes.keys() + extra_district_dicts.keys(),delimiter=voterfile_delimiter)
         reduced_voterfile_csv.writeheader()
         for i,line in enumerate(csv.DictReader(cut(voter_file_full,sorted(column_indexes.values()),voterfile_delimiter),delimiter=voterfile_delimiter)):
@@ -53,13 +56,18 @@ def compress_districts(unit,remove_voterfile=False):
 
 
 def clean_import(unit):
+    print 'running clean import\n\n'
     from utils.table_tools import import_table_sql,create_union_table_sql
     with conn_curs(DATABASE_CONF) as (connnection,cursor):
         for actual_table in unit.ACTUAL_TABLES:
             cursor.execute('DROP TABLE IF EXISTS {name} CASCADE;'.format(name=actual_table['import_table']))
+            for k,v in SCHEMA_TABLE_DICT.iteritems():
+                print k,v
+            print actual_table
             import_sql = import_table_sql(SCHEMA_TABLE_DICT[actual_table['schema_table']],actual_table)
-            print import_sql
+            print import_sql +'\n'
             cursor.execute(import_sql)
+    print 'ending clean import\n\n\n'
 
 def make_ersatz_conf(unit):
     from templates.ersatz_config_template import ersatz_config_template
@@ -71,10 +79,12 @@ def make_ersatz_conf(unit):
         )
 
 def build(unit):
+    print 'RUNNING BUILD'
     from ersatz import new_process_copies
     with conn_curs(DATABASE_CONF) as (connection,cursor):
         if not hasattr(unit,'ERSATZPG_CONFIG'):
             setattr(unit,'ERSATZPG_CONFIG',make_ersatz_conf(unit))
+        cursor.execute('alter table contest_import add column "contest_type" contestenum;')
         new_process_copies(unit,connection)
     distinct(unit)
     union(unit)

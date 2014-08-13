@@ -21,7 +21,7 @@ class CandidateTemplate():
                     ('electoral_district_name', 'electoral_district_type','electoral_district_id_long','ed_matched'):{'function': ed_map_function, 'columns':(4,)},
                     }
                 }.items()
-            ),
+),
 
             'BALLOT_CONTEST_IMPORT':dict(self.tdt.default_referenda_table().items() + {
                 'udcs':dict(self.tdt.default_candidate_table()['udcs'].items() + {
@@ -43,6 +43,44 @@ class CandidateTemplate():
                     }
                 }.items()
             ),
+"""
+            'REFERENDUM_IMPORT':dict(self.tdt.default_referenda_table().items() + {
+                'table':'referendum_import',
+                'columns':{
+                    'updated':{'function':nowtime,'columns':()},
+                    'identifier':{'function':referendum_id,'columns':(2,3)},
+                    'id_long':{'function':referendum_id,'columns':(2,3)},
+                    'contest_id_long':{'function':referendum_id,'columns':(2,3)},
+                    'title':3,
+                    'subtitle':4,
+                    'brief':5,
+                    'text':6,
+                    }
+                }.items()
+            ),
+
+            'BALLOT_RESPONSE_ONE_IMPORT':dict(self.tdt.default_referenda_table().items() + {
+                'table':'ballot_response_one_import',
+                'columns':{
+                    'updated':{'function':nowtime,'columns':()},
+                    'referendum_id_long':{'function':referendum_id,'columns':(2,3)},
+                    'identifier':{'function':concat_us,'columns':(2,3,7)},
+                    'text':7,
+                    }
+                }.items()
+            ),
+
+            'BALLOT_RESPONSE_TWO_IMPORT':dict(self.tdt.default_referenda_table().items() + {
+                'table':'ballot_response_two_import',
+                'columns':{
+                    'updated':{'function':nowtime,'columns':()},
+                    'referendum_id_long':{'function':referendum_id,'columns':(2,3)},
+                    'identifier':{'function':concat_us,'columns':(2,3,8)},
+                    'text':8,
+                    }
+                }.items()
+            ),
+"""
             'CANDIDATE_IN_CONTEST_IMPORT':dict(self.tdt.default_candidate_table().items() + {
                 'table':'candidate_in_contest_import',
                 'columns':{

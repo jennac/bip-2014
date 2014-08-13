@@ -76,6 +76,7 @@ CREATE TABLE "candidate" (
 "facebook_url" text,
 "wiki_word" varchar(255),
 "youtube" text,
+"state_key" varchar(10),
 "election_key" int4,
 "identifier" text,
 "updated" timestamp,

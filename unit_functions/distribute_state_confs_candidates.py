@@ -1,9 +1,10 @@
 from config import script_settings,candidate_file_name,voterfile_zip_name
+from mac_oshelper import list_helper, join_helper 
 import re, os,shutil
 import argparse
 
 def write_state_init(election,state):
-    shutil.copyfile(os.path.join(script_settings['templates'],'unit_init_office.py'),os.path.join(script_settings['process_units'],election,state,'__init__.py'))
+    shutil.copyfile(os.path.join(script_settings['templates'],'unit_init_candidate.py'),os.path.join(script_settings['process_units'],election,state,'__init__.py'))
 
 def copy_state_conf(state, election, overwrite_init):
     state=state.lower()
@@ -12,23 +13,25 @@ def copy_state_conf(state, election, overwrite_init):
     if len(cand_file) > 0 and len(voter_file) > 0:
         cand_file = os.path.join(script_settings['candidates'],election,cand_file[0])
         voter_file = os.path.join(script_settings['voterfiles'],state,voter_file[0])
-        conf_file = os.path.join(script_settings['exception_state_configs'],election,'state_conf_template_{state}.py'.format(state=state))
-        if not os.path.exists(conf_file):
-            conf_file = os.path.join(script_settings['templates'],'state_conf_template.py')
+        conf_file = os.path.join(script_settings['exception_state_configs'],election,'state_conf_data_{state}.py'.format(state=state))
         ed_map_file = os.path.join(script_settings['exception_ed_maps'],election,'ed_map_template_{state}.py'.format(state=state))
-        if not os.path.exists(ed_map_file):
-            ed_map_file = os.path.join(script_settings['templates'],'ed_map_template.py')
 
         if not os.path.exists(os.path.join(script_settings['process_units'],str(election),state)):
             os.makedirs(os.path.join(script_settings['process_units'],str(election),state))
-        os.remove(os.path.join(script_settings['process_units'],str(election),state,'ed_map.py'))
-        os.link(ed_map_file,os.path.join(script_settings['process_units'],str(election),state,'ed_map.py'))
-        os.remove(os.path.join(script_settings['process_units'],str(election),state,'state_conf.py'))
-        os.link(conf_file,os.path.join(script_settings['process_units'],str(election),state,'state_conf.py'))
-        os.remove(os.path.join(script_settings['process_units'],str(election),state,voterfile_zip_name))
+        if os.path.exists(os.path.join(script_settings['process_units'],str(election),state,'ed_map.py')):
+            os.remove(os.path.join(script_settings['process_units'],str(election),state,'ed_map.py'))
+        if os.path.exists(ed_map_file):
+            os.link(ed_map_file,os.path.join(script_settings['process_units'],str(election),state,'ed_map.py'))
+        if os.path.exists(os.path.join(script_settings['process_units'],str(election),state,'state_conf_data.py')):
+            os.remove(os.path.join(script_settings['process_units'],str(election),state,'state_conf_data.py'))
+        if os.path.exists(conf_file):
+            os.link(conf_file,os.path.join(script_settings['process_units'],str(election),state,'state_conf_data.py'))
+        if os.path.exists(os.path.join(script_settings['process_units'],str(election),state,voterfile_zip_name)):
+            os.remove(os.path.join(script_settings['process_units'],str(election),state,voterfile_zip_name))
         os.link(voter_file,os.path.join(script_settings['process_units'],str(election),state,voterfile_zip_name))
-        os.remove(os.path.join(script_settings['process_units'],str(election),state,candidate_file_name))
-        os.link(cand_file,os.path.join(script_settings['process_units'],str(election),state,candidate_file_name))
+        if os.path.exists(os.path.join(script_settings['process_units'],str(election),state,candidate_file_name)):
+            os.remove(os.path.join(script_settings['process_units'],str(election),state,candidate_file_name))
+        os.symlink(cand_file,os.path.join(script_settings['process_units'],str(election),state,candidate_file_name))
         if overwrite_init or not os.path.exists(os.path.join(script_settings['process_units'],election,state,'__init__.py')):
             write_state_init(election,state)
         """
@@ -61,10 +64,12 @@ if __name__ == '__main__':
     if args.election > 0:
         elections = [str(args.election)]
     else:
-        elections = os.listdir(script_settings['candidates'])
+        elections = list_helper(os.listdir(script_settings['candidates']))
     for election in elections:
+        if not os.path.exists(os.path.join(script_settings['process_units'],str(election))):
+            os.makedirs(os.path.join(script_settings['process_units'],str(election)))
         with open(os.path.join(script_settings['process_units'],election,'__init__.py'),'w') as election_init:
-            states = [re.match(r'(?P<state>\w\w)\s.*Candidates.csv',f,flags=re.IGNORECASE).groupdict()['state'] for f  in os.listdir(os.path.join(script_settings['candidates'],election)) if re.match(r'(?P<state>\w\w)\s.*Candidates.csv',f,flags=re.IGNORECASE)]
+            states = [re.match(r'(?P<state>\w\w)\s.*Candidates.csv',f,flags=re.IGNORECASE).groupdict()['state'] for f  in list_helper(os.listdir(os.path.join(script_settings['candidates'],election))) if re.match(r'(?P<state>\w\w)\s.*Candidates.csv',f,flags=re.IGNORECASE)]
             for state in states:
                 if (len(args.include) == 0 or state.lower() in [i.lower() for i in args.include]) and (len(args.exclude) == 0 or state.lower() in [x.lower() for x in args.exclude]):
                     copy_state_conf(state,election,args.overwrite)

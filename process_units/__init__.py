@@ -6,6 +6,7 @@ g.next()
 UNIT_DICT = {}
 MODULE_DICT = {}
 for d in g:
+    print d
     aligned_d0 = d[0][len(__path__[0].split(os.path.sep)):]
     add_to = UNIT_DICT
     add_to_module = MODULE_DICT
@@ -38,9 +39,11 @@ def yield_foreach_unit(func,unit_dict=UNIT_DICT,unit_path=tuple(__path__[0].spli
 
 def run_foreach_module(func,module_dict=MODULE_DICT,module_path=(),include_modules=(),exclude_modules=(),**kwargs):
     if type(module_dict)==types.ModuleType:
+        print 'first if'
         if (len(include_modules) == 0 or module_path in include_modules) and (len(exclude_modules) == 0 or not module_path in exclude_modules):
             func(module_dict,**kwargs)
     else:
+        print 'else'
         for k,v in module_dict.items():
             run_foreach_module(func,v,module_path+(k,),include_modules,exclude_modules,**kwargs)
 

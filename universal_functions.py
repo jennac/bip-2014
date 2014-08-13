@@ -5,14 +5,17 @@ from utils.process_schema import rip_schema
 from config import SCHEMA_FILE
 
 def partition():
+    print 'running partition\n\n\n\n'
     from collections import OrderedDict
     from utils.create_partitions import create_flat_partitions
     from process_units import HIERARCHY,UNIT_DICT
     with conn_curs(DATABASE_CONF) as (connnection,cursor):
         for schema_table in SCHEMA_TABLES:
             create_flat_partitions(schema_table.name,('election_key','state_key'),HIERARCHY,UNIT_DICT,cursor)
+    print 'ending partitionn\n\n'
 
 def clean_schema():
+    print 'running clean schema\n\n'
     with conn_curs(DATABASE_CONF) as (connnection,cursor):
         for enum in SCHEMA_ENUMS:
             cursor.execute(enum.drop())
@@ -23,6 +26,7 @@ def clean_schema():
         for table in SCHEMA_TABLES:
             cursor.execute(table.drop())
             cursor.execute(table.sql())
+    print 'ending clean schema\n\n'
 
 def dump_json(nulls=False):
     from config import json_location
