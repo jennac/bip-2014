@@ -2,7 +2,7 @@ import table_defaults as td
 from reformat import contest_id,referendum_id,ed_concat,concat_us,nowtime
 
 class CandidateTemplate():
-    def __init__(self,election_key,state_key,candidate_file_location,referenda_file_location,ed_map_function,source_prefix=None):
+    def __init__(self,election_key,state_key,candidate_file_location,referenda_file_location,source_prefix=None):
         self.tdt = td.TableDefaultTemplate(election_key,state_key,source_prefix,candidate_file_location=candidate_file_location,referenda_file_location=referenda_file_location)
 
         self.TABLES = {
@@ -19,7 +19,10 @@ class CandidateTemplate():
                     'role': 4,
                     'state':2,
                     'office':6,
-                    ('electoral_district_name', 'electoral_district_type','electoral_district_id_long','ed_matched'):{'function': ed_map_function, 'columns':(5,)},
+                    'level': 3,
+                    'role':4,
+                    'id_long': 22,
+                    'ed_matched':23,
                     }
                 }.items()
             ),

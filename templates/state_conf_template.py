@@ -26,7 +26,7 @@ class StateConfTemplate():
         #    self.ed_map=self.ed_map_wrapper(self.ed_map_template.ed_map)
         #else:
         #    self.ed_map=self.ed_map_template.ed_map
-        self.ct = cd.CandidateTemplate(unit.election_key,unit.state_key,os.path.join(unit.__path__[0],candidate_file_name),os.path.join(unit.__path__[0],'referenda'),self.ed_map,'_'.join(unit.partition_suffixes))
+        self.ct = cd.CandidateTemplate(unit.election_key,unit.state_key,os.path.join(unit.__path__[0],candidate_file_name),os.path.join(unit.__path__[0],'referenda'))
         #self.tsmdt = tsmd.TargetSmartManipulationDataTemplate(self.tst)
         self.cmdt = cmd.CandidateManipulationDataTemplate(self.ct)
         self.IMPORT_TABLES = self.ct.TABLES.values()#+self.tst.TABLES.values()
