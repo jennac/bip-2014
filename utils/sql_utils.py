@@ -63,10 +63,8 @@ def dump_json(nulls=False):
 
 office_fields = ['contest.office','contest.office_level','contest.state as co_state','contest.identifier as co_identifier', 'contest.election_key as co_ek']
 candidate_fields = ['candidate.name','candidate.identifier as ca_identifier','candidate.party','candidate.incumbent','candidate.phone','candidate.mailing_address','candidate.candidate_url','candidate.email','candidate.facebook_url','candidate.twitter_name','candidate.google_plus_url','candidate.wiki_word','candidate.youtube', 'candidate.source as ca_source','candidate.election_key as ca_ek']
-precinct_fields = ['precinct.name','precinct.number', 'precinct.source as pr_source','precinct.identifier as pr_identifier','locality.name as locality_name','locality.type as locality_type', 'precinct.election_key as pr_ek']
-electoral_district_fields = ['electoral_district.name','electoral_district.identifier as ed_identifier','electoral_district.type','electoral_district.source as ed_source', 'electoral_district.election_key as ed_ek']
+electoral_district_fields = ['electoral_district.name','electoral_district.ts_id as ed_ts_id','electoral_district.type','electoral_district.source as ed_source', 'electoral_district.election_key as ed_ek', 'electoral_district.odcdid as ocdid']
 ed_condition = [('electoral_district','name', 'is not', None)]
-pr_condition = [('precinct','name','is not', None)]
 
 def related_office(o_dict):
     return '{co_state} {office} {office_level} {co_ek}'.format(**o_dict)
@@ -77,8 +75,6 @@ def related_electoral_district(ed_dict):
 def related_candidate(ca_dict):
     return '{state} {name} {party} {ca_ek}'.format(state=ca_dict['ca_source'].replace('Candidates',''), **ca_dict)
 
-def related_precinct(pr_dict):
-    return '{state} {locality_name} {locality_type} {name} {number} {pr_ek}'.format(state=pr_dict['pr_source'].replace('VF',''), **pr_dict)
 
 electoral_district_id_tuple = (('ed_source',lambda s: s.replace('VF','')), ('ed_ek',str),'ed_identifier')
 electoral_district_url_tuple = ('state','election','idn')
@@ -100,7 +96,7 @@ def electoral_district_json(idn=None, state=None, election=None, typ=None, name=
         conditions.append(('electoral_district','type','=',typ))
     if name:
         conditions.append(('electoral_district','name','ilike',"%{name}%".format(name=name)))
-    office_sql = build_sql('contest',office_fields + ['electoral_district.identifier as ed_identifier', 'electoral_district.source as ed_source','electoral_district.election_key as ed_ek'],[(None,'electoral_district','electoral_district_id','id')],conditions + ed_condition)
+#    office_sql = build_sql('contest',office_fields + ['electoral_district.identifier as ed_identifier', 'electoral_district.source as ed_source','electoral_district.election_key as ed_ek'],[(None,'electoral_district','electoral_district_id','id')],conditions + ed_condition)
     candidate_sql = build_sql('candidate',candidate_fields + ['electoral_district.identifier as ed_identifier', 'electoral_district.source as ed_source','electoral_district.election_key as ed_ek'],[(None,'candidate_in_contest','id','candidate_id'),('candidate_in_contest','contest','contest_id','id'),('contest','electoral_district','electoral_district_id','id')],conditions + ed_condition)
     precinct_sql = build_sql('precinct',precinct_fields + ['electoral_district.identifier as ed_identifier', 'electoral_district.source as ed_source','electoral_district.election_key as ed_ek'],[(None,'locality','locality_id','id'),(None,'electoral_district__precinct','id','precinct_id'),('electoral_district__precinct','electoral_district','electoral_district_id','id')],conditions + ed_condition + pr_condition)
     electoral_district_sql = build_sql('electoral_district',electoral_district_fields,[],conditions + ed_condition)

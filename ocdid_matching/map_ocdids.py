@@ -57,6 +57,7 @@ def match_exists(prefix_list, offset):
     new_prefix = is_exact(prefix_list[:offset])
     if new_prefix:
         dist_type, dist_name = prefix_list[offset].split(':')
+        print 'EXACT MATCH'
         return ocdid.match_name(new_prefix, dist_type, dist_name)
     return None, -1
 
@@ -135,6 +136,7 @@ def is_sub_district(e_district):
         True -- if district is a lower level district
         False -- if 'Body Represents' info sufficient to place district
     """
+    print 'IS SUB DISTRICT: {}'.format(e_district)
     if 'precinct ' in e_district or 'district ' in e_district:
         return True
     # 'ward' logic here to avoid capturing stuff like 'Ward County'
@@ -183,7 +185,7 @@ def assign_ids(f):
     with open(Dirs.TEST_DIR + f, 'rb') as r, open(Dirs.STAGING_DIR + f, 'w') as w:
         reader = DictReader(r)
         fields = reader.fieldnames
-        print fields
+        print 'FIELDS: {}'.format(fields)
         # ocdid_report is not included sometimes, and additional fields are
         # occassionally added.
         if 'ocdid_report' not in fields:
@@ -231,10 +233,11 @@ def assign_ids(f):
                 else:
                     prefix_list.append('place:{}'.format(muni))
 
-            
+            print 'PREFIX LIST: {}'.format(prefix_list)
             # ocdid_key is a tuple of the prefix list, makes matching to
             # specific group of district values only happens once
             ocdid_key = tuple(prefix_list)
+            print 'OCDID_KEY: {}'.format(ocdid_key)
             if ocdid_key in ocdid_vals:
                 full_prefix = ocdid_vals[ocdid_key]['ocdid']
                 ratio = ocdid_vals[ocdid_key]['ratio']
@@ -264,6 +267,7 @@ def assign_ids(f):
 
         # Match unmatched items by type and count, finding closest matches
         for k, v in unmatched.iteritems():
+            print 'KEY: {}\nVALUE: {}'.format(k, v)
             full_prefix = v['prefix']
             d_type = v['dist_type']
             districts = v['districts']
@@ -274,7 +278,8 @@ def assign_ids(f):
             ##        print d
             ##        print '\n'
 
-            print '{}\n{}\n{}\n'.format(full_prefix, d_type, len(districts))
+            print '------------------------------------------------------------------------'
+            print 'FULL: {}\nD_TYPE: {}\nLEN: {}\n'.format(full_prefix, d_type, len(districts))
             type_val = ocdid.match_type(full_prefix, d_type, len(districts))
             
             if not type_val:
@@ -311,7 +316,7 @@ def main():
     args = parser.parse_args()
 
     files = listdir(Dirs.TEST_DIR)
-    print files
+    print 'FILES: {}'.format(files)
     print args.state
     for f in files:
         if f.startswith('.') or f.startswith('_') or not f.endswith('.csv') or f.startswith('unverified'):

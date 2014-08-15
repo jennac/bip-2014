@@ -60,10 +60,10 @@ def clean_import(unit):
     from utils.table_tools import import_table_sql,create_union_table_sql
     with conn_curs(DATABASE_CONF) as (connnection,cursor):
         for actual_table in unit.ACTUAL_TABLES:
+            print 'ACTUAL: {}'.format(actual_table)
             cursor.execute('DROP TABLE IF EXISTS {name} CASCADE;'.format(name=actual_table['import_table']))
-            for k,v in SCHEMA_TABLE_DICT.iteritems():
-                print k,v
-            print actual_table
+            #for k,v in SCHEMA_TABLE_DICT.iteritems():
+            #    print k,v
             import_sql = import_table_sql(SCHEMA_TABLE_DICT[actual_table['schema_table']],actual_table)
             print import_sql +'\n'
             cursor.execute(import_sql)
@@ -84,7 +84,7 @@ def build(unit):
     with conn_curs(DATABASE_CONF) as (connection,cursor):
         if not hasattr(unit,'ERSATZPG_CONFIG'):
             setattr(unit,'ERSATZPG_CONFIG',make_ersatz_conf(unit))
-        cursor.execute('alter table contest_import add column "contest_type" contestenum;')
+            #cursor.execute('alter table ballot_contest_import add column "contest_type" contestenum;')
         new_process_copies(unit,connection)
     distinct(unit)
     union(unit)
@@ -106,6 +106,7 @@ def union(unit):
             cursor.execute(union_sql)
 
 def rekey(unit):
+    print 'ENTERING REKEY'
     from utils.table_tools import rekey_import_sql,create_timestamp_table_sql
     from config import timestamp_suffix
     with conn_curs(DATABASE_CONF) as (connection,cursor):
@@ -113,7 +114,9 @@ def rekey(unit):
         for schema_table in SCHEMA_TABLES:
             cursor.execute(create_timestamp_table_sql(schema_table,unit.partition_suffixes,timestamp_suffix))
 
+    
         for table in unit.ACTUAL_TABLES:
+            print 'TABLE: {}'.format(table)
             schema_table = SCHEMA_TABLE_DICT[table['schema_table']]
             if len(table['long_fields']) > 0:
                 sql = rekey_import_sql(SCHEMA_TABLE_DICT[table['schema_table']],table, unit.partition_suffixes,timestamp_suffix)
@@ -143,6 +146,10 @@ def timestamp(unit,connection,cursor):
 def get_unique_schema_to_actual(unit):
     mapping = {}
     for schema_table in SCHEMA_TABLES:
+        print 'START'
+        print 'ACTUAL: {}'.format(u['actual_table']['schema_table'])
+        print 'SCHEMA_TABLE: {}'.format(schema_table.name)
+        print '\n'
         match_actuals = [u['actual_table'] for u in unit.UNIONS if u['actual_table']['schema_table'] == schema_table.name] or [a for a in unit.ACTUAL_TABLES if a['schema_table'] == schema_table.name]
         assert len(match_actuals) <= 1
         if match_actuals:

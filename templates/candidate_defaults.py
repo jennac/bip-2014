@@ -10,15 +10,16 @@ class CandidateTemplate():
                 'udcs':dict(self.tdt.default_candidate_table()['udcs'].items() + {
                     'contest_type':'candidate',
                     }.items()),
-                'table':'ballot_contest_import',
+                'table':'contest_import',
                 'columns':{
                     'updated':{'function':nowtime,'columns':()},
-                    'identifier':{'function':contest_id,'columns':(2,4,5)},
-                    'id_long':{'function':contest_id,'columns':(2,4,5)},
-                    'office_level':3,
+                    'identifier':{'function':contest_id,'columns':(2,5,6)},
+                    'id_long':{'function':contest_id,'columns':(2,5,6)},
+                    'level':3,
+                    'role': 4,
                     'state':2,
-                    'office':5,
-                    ('electoral_district_name', 'electoral_district_type','electoral_district_id_long','ed_matched'):{'function': ed_map_function, 'columns':(4,)},
+                    'office':6,
+                    ('electoral_district_name', 'electoral_district_type','electoral_district_id_long','ed_matched'):{'function': ed_map_function, 'columns':(5,)},
                     }
                 }.items()
             ),
@@ -28,11 +29,12 @@ class CandidateTemplate():
                     'contest_type':'referendum',
                     'electoral_district_type':'state',
                     'office':'statewide referendum',
-                    'office_level':'Statewide',
+                    'level':'administrativeArea1',
+                    'role': 'ballotRole',
                     'ed_matched':'True'
                     }.items()),
                 'filename':self.tdt.referenda_file_location,
-                'table':'contest_import',
+                'table':'ballot_contest_import',
                 'columns':{
                     'updated':{'function':nowtime,'columns':()},
                     'identifier':{'function':referendum_id,'columns':(2,3)},
@@ -47,7 +49,7 @@ class CandidateTemplate():
                 'table':'candidate_in_contest_import',
                 'columns':{
                     'candidate_id_long':1,
-                    'contest_id_long':{'function':contest_id,'columns':(2,4,5)},
+                    'contest_id_long':{'function':contest_id,'columns':(2,5,6)},
                     },
                 }.items()
             ),
@@ -60,18 +62,18 @@ class CandidateTemplate():
                     'identifier':1,
                     #'office_level':3,
                     #'office_name':5,
-                    'name':6,
-                    'party':7,
-                    'incumbent':9,
-                    'phone':10,
-                    'mailing_address':11,
-                    'candidate_url':12,
-                    'email':13,
-                    'facebook_url':14,
-                    'twitter_name':15,
-                    'google_plus_url':16,
-                    'wiki_word':17,
-                    'youtube':18
+                    'name':7,
+                    'party':8,
+                    'incumbent':10,
+                    'phone':11,
+                    'mailing_address':12,
+                    'candidate_url':13,
+                    'email':14,
+                    'facebook_url':15,
+                    'twitter_name':16,
+                    'google_plus_url':17,
+                    'wiki_word':18,
+                    'youtube':19
                     },
                 }.items()
             ),

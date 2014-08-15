@@ -26,7 +26,7 @@ class CandidateManipulationDataTemplate():
 
             'BALLOT_CONTEST_ACTUAL':dict(self.tdt.DEFAULT_ACTUAL_TABLE.items() + {
                 'schema_table':'contest',
-                'import_table':self.table_import_data.TABLES['CONTEST_IMPORT']['table'],
+                'import_table':self.table_import_data.TABLES['BALLOT_CONTEST_IMPORT']['table'],
                 'long_fields':({'long':'id_long','real':'id'},{'long':'electoral_district_id_long','real':'electoral_district_id'}),
                 'long_from':('id_long',),
                 'long_to':(

@@ -64,39 +64,11 @@ class TargetSmartTemplate():
                 )
                 }
         """
-        self.TABLES = {
-            'PRECINCT_IMPORT':dict(self.tdt.default_vf_table().items() + {
-                'udcs':dict(self.tdt.default_vf_table()['udcs'].items() + {'is_split':False}.items()),
-                'table':'precinct_import',
-                'dict_reader':True,
-                'columns':{
-                    'updated':{'function':nowtime,'columns':()},
-                    'name':'vf_precinct_name',
-                    'number':'vf_precinct_id',
-                    'locality_id_long':'vf_county_name',
-                    'identifier':{'function':concat_us,'columns':('vf_county_name','vf_precinct_name','vf_precinct_id')},
-                    'id_long':{'function':concat_us,'columns':('vf_county_name','vf_precinct_name','vf_precinct_id')},
-                    }
-                }.items()
-            ),
-
-            'LOCALITY_IMPORT':dict(self.tdt.default_vf_table().items() + {
-                'udcs':dict(self.tdt.default_vf_table()['udcs'].items() + {'type':'COUNTY'}.items()),
-                'table':'locality_import',
-                'dict_reader':True,
-                'columns':{
-                    'updated':{'function':nowtime,'columns':()},
-                    'name':'vf_county_name',
-                    'id_long':'vf_county_name',
-                    'identifier':'vf_county_name',
-                    }
-                }.items()
-            ),
-        }
+        self.TABLES = {}
 
         for ed_def in self.ed_defs:
             self.TABLES[ed_def['district_import']]=self.electoral_district_import(**ed_def)
-            self.TABLES[ed_def['district_precinct_import']]=self.electoral_district_precinct_import(**ed_def)
+            #self.TABLES[ed_def['district_precinct_import']]=self.electoral_district_precinct_import(**ed_def)
 
 
     def electoral_district_import(self, district_type,import_table,dict_reader,name_column,identifier=None,**kwargs):
@@ -107,11 +79,13 @@ class TargetSmartTemplate():
         'columns':{
             'updated':{'function':nowtime,'columns':()},
             'name':(name_column if type(name_column)==str else {'function':concat_us, 'columns':('vf_county_name','vf_county_council',)}),
-            'identifier':identifier or {'function':ed_concat,'columns':((name_column,) if type(name_column)==str else name_column),'defaults':{'type':district_type}},
+            
+            'ts_id':identifier or {'function':ed_concat,'columns':((name_column,) if type(name_column)==str else name_column),'defaults':{'type':district_type}},
             'id_long':identifier or {'function':ed_concat,'columns':((name_column,) if type(name_column)==str else name_column),'defaults':{'type':district_type}},
             },
         }.items())
 
+"""
     def electoral_district_precinct_import(self, district_type,precinct_join_import_table,dict_reader,name_column,electoral_district_id=None,**kwargs):
         return dict(self.tdt.default_vf_table().items() + {
         'table':precinct_join_import_table,
@@ -121,4 +95,4 @@ class TargetSmartTemplate():
             'precinct_id_long':{'function':concat_us,'columns':('vf_county_name','vf_precinct_name','vf_precinct_id')},
             },
         }.items())
-
+"""
