@@ -28,6 +28,6 @@ DATABASE_CONF = {
         'pw':os.environ['PGPASSWORD']
         }
 
-SCHEMA_FILE = os.path.join(os.environ['BMS_HOME'],'config','basic_bip_schema.sql')
+SCHEMA_FILE = os.path.join(os.environ['BMS_HOME'],'config','bip_schema.sql')
 SCHEMA_TABLES,SCHEMA_ENUMS,SCHEMA_FKS,SCHEMA_SEQS = rip_schema(SCHEMA_FILE)
 SCHEMA_TABLE_DICT = dict((t.name,t) for t in SCHEMA_TABLES)

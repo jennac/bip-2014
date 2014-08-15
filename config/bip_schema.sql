@@ -41,7 +41,8 @@ CREATE TABLE "contest" (
 "electorate_specifications" varchar(255),
 "special" bool,
 "office" varchar(255),
-"office_level" varchar(255),
+"level" varchar(255),
+"role" varchar(255),
 "filing_closed_date" date,
 "number_elected" int4,
 "number_voting_for" int4,
@@ -170,7 +171,8 @@ CREATE TABLE "electoral_district" (
 "state_id" int4,
 "election_key" varchar(50),
 "state_key" varchar(10),
-"identifier" text,
+"ts_id" text,
+"ocdid" text,
 "updated" timestamp,
 PRIMARY KEY ("id") 
 );
