@@ -46,10 +46,10 @@ def main():
         uf.clean_schema()
     if args.partition or args.all:
         uf.partition()
-    if args.clean_imports or args.all or args.all_no_clean:
-        process_units.run_foreach_module(unit_functions.clean_import)
-    if args.build or args.all or args.all_no_clean:
-        process_units.run_foreach_module(unit_functions.build)
+    #if args.clean_imports or args.all or args.all_no_clean:
+        #process_units.run_foreach_module(unit_functions.clean_import)
+    #if args.build or args.all or args.all_no_clean:
+        #process_units.run_foreach_module(unit_functions.build)
     if args.export or args.all or args.all_no_clean:
         uf.dump_json()
 

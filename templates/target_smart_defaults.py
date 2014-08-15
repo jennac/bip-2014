@@ -70,8 +70,8 @@ class TargetSmartTemplate():
             self.TABLES[ed_def['district_import']]=self.electoral_district_import(**ed_def)
             #self.TABLES[ed_def['district_precinct_import']]=self.electoral_district_precinct_import(**ed_def)
 
-
     def electoral_district_import(self, district_type,import_table,dict_reader,name_column,identifier=None,**kwargs):
+        print 'NAME COLUMN: {}'.format(name_column)
         return dict(self.tdt.default_vf_table().items() + {
         'udcs':dict(self.tdt.default_vf_table()['udcs'].items() + {'type':district_type}.items()),
         'table':import_table,
@@ -79,20 +79,8 @@ class TargetSmartTemplate():
         'columns':{
             'updated':{'function':nowtime,'columns':()},
             'name':(name_column if type(name_column)==str else {'function':concat_us, 'columns':('vf_county_name','vf_county_council',)}),
-            
+
             'ts_id':identifier or {'function':ed_concat,'columns':((name_column,) if type(name_column)==str else name_column),'defaults':{'type':district_type}},
             'id_long':identifier or {'function':ed_concat,'columns':((name_column,) if type(name_column)==str else name_column),'defaults':{'type':district_type}},
             },
         }.items())
-
-"""
-    def electoral_district_precinct_import(self, district_type,precinct_join_import_table,dict_reader,name_column,electoral_district_id=None,**kwargs):
-        return dict(self.tdt.default_vf_table().items() + {
-        'table':precinct_join_import_table,
-        'dict_reader':dict_reader,
-        'columns':{
-            'electoral_district_id_long':electoral_district_id or {'function':ed_concat,'columns':((name_column,) if type(name_column)==str else name_column),'defaults':{'type':district_type}},
-            'precinct_id_long':{'function':concat_us,'columns':('vf_county_name','vf_precinct_name','vf_precinct_id')},
-            },
-        }.items())
-"""
