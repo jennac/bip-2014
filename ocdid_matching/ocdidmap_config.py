@@ -8,7 +8,7 @@ class Dirs(object):
     STAGING_DIR = '/Users/jcolazzi/Dropbox/BIP Production/candidates/staging_2014/'
     #PROD_FF = '/Users/jcolazzi/Dropbox/noBIP/office_data/production/flat_files/'
     #PROD_JSON = '/Users/jcolazzi/Dropbox/noBIP/office_data/production/json/'
-    #REPORTS_DIR = '/Users/jcolazzi/Dropbox/noBIP/office_data/reports/'
+    REPORTS_DIR = '/Users/jcolazzi/Dropbox/BIP Production/candidates/reports/'
     #JSON_VERSION = '/Users/jcolazzi/Dropbox/noBIP/office_data/json/{}/'.format(datetime.now().strftime('%Y-%m-%d'))
     DATE_VAL = str(datetime.now()).replace(' ', '_')
     DATE_VAL = DATE_VAL[:DATE_VAL.find('.')]

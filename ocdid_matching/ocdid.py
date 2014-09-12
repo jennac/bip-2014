@@ -37,6 +37,7 @@ def is_ocdid(ocdid):
     False -- ocdid not found (could be candidate for new ocdid)
 
     """
+    
     if ocdid in ocdid_set:
         return True
     else:
@@ -254,6 +255,8 @@ def print_subdistrict_data(ocdid_prefix):
     for k, v in ocdids[ocdid_prefix].iteritems():
         print '  - {}:{}'.format(k, v)
 
+        
+
 """ If a url is provided, use 'requests' to obtain ocdid data
         otherwise, read from file system """
 if 'http' in Ocdid.URL:
@@ -264,6 +267,8 @@ else:
     f = open(Ocdid.URL, 'r')
     r = f.read()
 
+
+    
 """ Generate a set of only ocdid data with empty values removed """
 ocdid_set = set()
 ocdids = {}
@@ -277,6 +282,7 @@ for row in reader:
             exceptions[row['id']] = row['sameAs']
         elif row['id'].find('dona_ana') >= 0:
             exceptions[row['id']] = row['id'].replace('dona_ana', u'do\xf1a_ana')
+            
 
 """ Create a dictionary of ocdid data in the format:
         {
