@@ -4,7 +4,13 @@ from csv import DictReader, DictWriter
 from os import listdir
 
 import ocdid
+import state_exceptions as se
+
+#get_district_num soon to be depricated
+from match_ts import match_ts_ids, read_districts
+from match_utils import get_district, get_district_num, no_zeros, get_level_and_role, merge_level_and_role
 from ocdidmap_config import Dirs, Assign
+from qa_checks import no_ed_match, office_percentage_report, write_report
 
 
 def read_candidates(read_file):
@@ -17,10 +23,16 @@ def read_candidates(read_file):
     """
     
     with open(Dirs.TEST_DIR + read_file, 'rU') as r_file:
-        #    with open('/Users/jcolazzi/Dropbox/BIP Production/candidates/test_2014/' + read_file, 'rU') as r_file:
         reader = DictReader(r_file)
         fields = reader.fieldnames
         data = [row for row in reader]
+
+        if 'type' not in fields:
+            fields.append('type')
+        if 'name' not in fields:
+            fields.append('name')
+        if 'ts_id' not in fields:
+            fields.append('ts_id')
         
     return {'cand_data': data, 'fields': fields}
 
@@ -36,17 +48,6 @@ def write_matches(matched, fields, write_file):
             except UnicodeDecodeError:
                 print row
                 
-
-def no_zeros(string):  
-    
-    """
-    Removes preprended zeros.
-    """ 
-    
-    while string[0] == '0':
-        string = string[1:]
-    return string
-
                 
 def get_prefix(state):
 
@@ -64,103 +65,6 @@ def get_prefix(state):
             prefix += 'state:{}'.format(state)
             
     return prefix
-        
-                
-def get_district_num(ed):
-
-    """
-    Returns the district number for a given electoral district.
-    Note: this might actually be letters or a letter/num combination
-    If there is no match, it returns an empty string.
-    """
-    
-    if re.match(r'\d+', ed.split()[-1]):
-        return no_zeros(ed.split()[-1])
-    elif re.match(r'[a-z]', ed.split()[-1]):
-        return ed.split()[-1]
-    else:
-        return ''
-
-
-#State exception functions for various state specific scenarios
-
-def dc_exceptions(estimated_ocdid, ed, role):
-    
-    if role == 'legislatorupperbody':
-        return estimated_ocdid + '/ward:' + get_district_num(ed) 
-
-    
-def vt_exceptions(estimated_ocdid, office, role):
-
-    suffix = office.split(',')[-1].lower().strip().replace(' ', '-')
-
-    if role == 'legislatorlowerbody':
-        estimated_ocdid += (u'/sldl:')
-        estimated_ocdid += suffix
-    elif role == 'legislatorupperbody':
-        estimated_ocdid += (u'/sldu:')
-        estimated_ocdid += suffix
-    if 'grand-isle' in estimated_ocdid:
-        if 'chittenden' not in estimated_ocdid:
-            estimated_ocdid = estimated_ocdid.replace('grand-isle', 'grand_isle-chittenden')
-        else:
-            estimated_ocdid = estimated_ocdid.replace('grand-isle', 'grand_isle')
- 
-    return estimated_ocdid
-
-##
-
-#Some QA type reports
-
-def office_percentage_report(matched, match_count, unmatched_count, state):
-
-    total = len(matched)
-    statewide = 0
-    congress = 0 
-    stateleg = 0 
-    lower_levels = 0
-    
-    for m in matched:
-        ocdid = m['ocdid'].split('/')[-1].split(':')
-        if ocdid[0] == 'state':
-            statewide += 1
-        elif ocdid[0] == 'sldl' or ocdid[0] == 'sldu':
-            stateleg += 1
-        elif ocdid[0] == 'cd':
-            congress += 1
-        elif not m['ocdid'] == '':
-            lower_levels += 1
-    
-    if not total == 0:
-        percent_statewide = float(statewide)/float(total) * 100
-        percent_congress = float(congress)/float(total) * 100
-        percent_stateleg = float(stateleg)/float(total) * 100
-        percent_lower_levels = float(lower_levels)/float(total) * 100
-        percent_matched = float(match_count)/float(total) * 100
-
-    percentage_report =  {
-        'state': state.upper(),
-        'row_count': total,
-        'match_count': match_count,
-        'unmatched_count': unmatched_count,
-        'statewide': percent_statewide,
-        'congress': percent_congress, 
-        'stateleg': percent_stateleg,
-        'lower_levels': percent_lower_levels,
-        'total_matched': percent_matched
-        }
-
-    return percentage_report
-
-
-def write_report(qa_data, qa_report, fields):
-
-    with open(Dirs.REPORTS_DIR + qa_report, 'w') as report:
-        writer = DictWriter(report, fieldnames=fields)
-        writer.writeheader()
-        for q in qa_data:
-            writer.writerow(q)
-###
 
 def assign_lower(state, ed, office, level, role, estimated_ocdid):
     a1 = 0
@@ -172,26 +76,32 @@ def assign_lower(state, ed, office, level, role, estimated_ocdid):
     if level == 'administrativearea1':
         a1 += 1
         estimated_ocdid = ''
-        #print 'ADMIN1'
     elif level == 'administrativearea2':
         a2 += 1
-        #print 'ADMIN2'
         if 'county' in ed:
-            if 'council' in ed:
-                if 'county council district' in ed:
-                    temp_ed = ed.split()
-                    estimated_ocdid += '/county:{}/council_district:{}'.format(temp_ed[0], temp_ed[-1])
-                    if not ocdid.is_ocdid(estimated_ocdid):
-                        estimated_ocdid = ''
+            if state == 'va' and 'city' in ed:
+                estimated_ocdid = se.va_exceptions(estimated_ocdid, ed, role)
+            elif 'county council district' in ed:
+                temp_ed = ed.split()
+                estimated_ocdid += '/county:{}/council_district:{}'.format(temp_ed[0], temp_ed[-1])
+                if not ocdid.is_ocdid(estimated_ocdid):
+                    estimated_ocdid = ''
             elif 'school' in ed:
-                pass
+                #print ed
+                #temp_ed = ed.split('school board district')
+                #ed = temp_ed[0].replace('county', '').strip().replace(' ', '_').replace('.', '')
+                #estimated_ocdid += '/county:{}/school_district:{}'.format(ed, temp_ed[-1].strip())
+                estimated_ocdid = ''
             elif 'subcircuit' in ed:
-                pass
+                estimated_ocdid = ''
             elif 'finance' in ed:
                 estimated_ocdid = ''
             else:
                 ed = ed.replace('county', '').strip().replace(' ', '_').replace('.', '')
                 estimated_ocdid += '/county:{}'.format(ed)
+        else: 
+            #until muni support
+            estimated_ocdid = ''
     elif level == 'regional':
         r += 1
         num = get_district_num(ed)
@@ -205,14 +115,13 @@ def assign_lower(state, ed, office, level, role, estimated_ocdid):
     elif level == 'special':
         s += 1
         estimated_ocdid = ''
-        #print 'prolly some bullshit'
     else:
         estimated_ocdid = ''
-        #print 'WHAT EVEN IS THIS'
 
     
     return (estimated_ocdid, (a1, a2, r, s))
-        
+
+
 def assign_ids(data):
 
     matched = []
@@ -231,7 +140,7 @@ def assign_ids(data):
         d['Candidate Name'] = d['Candidate Name'].strip()
         
         state = d['State'].lower()
-        ed = d['Electoral District'].lower()
+        ed = d['Electoral District'].lower().replace('\'', '~')
         office = d['Office Name'].lower()
         level = d['level'].lower()
         role = d['role'].lower()
@@ -247,14 +156,18 @@ def assign_ids(data):
         elif level == 'administrativearea1':
             if ed == state:
                 estimated_ocdid = estimated_ocdid
-            elif state == 'vt':
-                estimated_ocdid = vt_exceptions(estimated_ocdid, office, role)
             elif state == 'dc':
-                estimated_ocdid = dc_exceptions(estimated_ocdid, ed, role)
+                estimated_ocdid = se.dc_exceptions(estimated_ocdid, ed, role)
+            elif state == 'ma' and 'councillor district' in ed:
+                estimated_ocdid = ''
+            elif state == 'nh':
+                estimated_ocdid = se.nh_exceptions(estimated_ocdid, ed, role)
+            elif state == 'vt':
+                estimated_ocdid = se.vt_exceptions(estimated_ocdid, office, role)
             elif role == 'legislatorlowerbody':
-                estimated_ocdid += (u'/sldl:') +  get_district_num(ed)
+                estimated_ocdid += (u'/sldl:') +  get_district(ed)
             elif role == 'legislatorupperbody':
-                estimated_ocdid += (u'/sldu:') +  get_district_num(ed)
+                estimated_ocdid += (u'/sldu:') +  get_district(ed)
             else:
                 unmatched.append(d)
         else:
@@ -286,37 +199,15 @@ def assign_ids(data):
     print 'Rows in flat file: {}'.format(len(matched))
     print 'Matched rows: {}'.format(match_count)
     print 'Unmatched rows: {}\n'.format(len(unmatched))
-    office_percentages = office_percentage_report(matched, match_count, len(unmatched), state)
+    office_percentages = office_percentage_report(matched, len(data), len(unmatched), state)
     print 'a1: {}\na2: {}\nr: {}\ns: {}\n'.format(a1, a2, r, s)
 
-    print possible_errors
+    print 'POSSIBLE ERRORS:{}'.format(possible_errors)
     return {'matched': matched, 
             'office_percentage_report': office_percentages,
             'invalid_id_report': possible_errors
             }
 
-
-def get_level_and_role():
-    landr_dict = {}
-
-    with open(Dirs.STAGING_DIR + 'assigned.csv') as with_lr:
-        reader = DictReader(with_lr)
-        for row in reader: 
-            landr_dict[row['UID']] = row
-
-    return landr_dict
-
-
-def merge_level_and_role(read_data, lower_levels):
-
-    for row in read_data: 
-        values = lower_levels.get(row['UID'], None)
-        if values:
-            row['level'] = values['level']
-            row['role'] = values['role']
-
-    return read_data
-    
 
 def main():
     usage = 'Assigns OCDIDs to BIP Candidate Files. Essentially, maps Electoral Districts.'
@@ -326,10 +217,12 @@ def main():
     args = parser.parse_args()
 
     files = listdir(Dirs.TEST_DIR)
-    #files = listdir('/Users/jcolazzi/Dropbox/BIP Production/candidates/test_2014/')
                     
     qa_percentages = []
     qa_invalid_ids = []
+
+    needs_district = []
+
 
     for f in files: 
         if f.startswith('.') or f.startswith('_') or not f.endswith('.csv') or f.startswith('unverified'):
@@ -339,27 +232,44 @@ def main():
         else:
             print '------------------------{}--------------------------------------'.format(f)
             read_data = read_candidates(f)
-            lower_levels = get_level_and_role()
+
+            #assign level and role from bulk file
+            lower_levels = get_level_and_role(Dirs.STAGING_DIR)
             read_data['cand_data'] = merge_level_and_role(read_data['cand_data'], lower_levels)
+
+            #match to OCDID
             id_data = assign_ids(read_data['cand_data'])
             matched = id_data['matched']
-            
+
+            #match to TS data
+            #districts = read_districts(f[:2].lower())
+            #matched = match_ts_ids(matched, districts)
+
+            #Gather QA Data/New Districts
             qa_percentages.append(id_data['office_percentage_report'])
 
             qa_ids = id_data['invalid_id_report']
             if not len(qa_ids) == 0:
                 qa_invalid_ids.extend(qa_ids)
+                
+            no_ed_match = no_ed_match(matched) 
+            if not len(no_ocdid) == 0:
+                needs_district.extend(no_ocdid) 
+                
             write_matches(matched, read_data['fields'], f)
             print '\n'
 
+
+            
     #Generate QA Reports
     percentage_fields = ['state', 'row_count', 'match_count', 'unmatched_count', 
                          'statewide', 'congress', 'stateleg', 'lower_levels', 'total_matched']
-    write_report(qa_percentages, 'Office_Percentages.csv', percentage_fields)
+    write_report(qa_percentages, 'Office_Percentages.csv', percentage_fields, Dirs.REPORTS_DIR)
 
     invalid_id_fields = ['state', 'possible_error']
-    write_report(qa_invalid_ids, 'Invalid_IDs.csv', invalid_id_fields)
-   
+    write_report(qa_invalid_ids, 'Invalid_IDs.csv', invalid_id_fields, Dirs.REPORTS_DIR)
+
+    write_report(no_ocdid
     
             
 
@@ -367,6 +277,3 @@ if __name__=='__main__':
     main()
 
 
-
-    #county == adminarea2
-    
