@@ -6,6 +6,7 @@ class Dirs(object):
     # Change directories to match settings as necessary
     TEST_DIR = '/Users/jcolazzi/Dropbox/BIP Production/candidates/2014/'
     STAGING_DIR = '/Users/jcolazzi/Dropbox/BIP Production/candidates/staging_2014/'
+    DISTRICT_DIR = '/Users/jcolazzi/bip/cleanbip/districts/'
     #PROD_FF = '/Users/jcolazzi/Dropbox/noBIP/office_data/production/flat_files/'
     #PROD_JSON = '/Users/jcolazzi/Dropbox/noBIP/office_data/production/json/'
     REPORTS_DIR = '/Users/jcolazzi/Dropbox/BIP Production/candidates/reports/'
