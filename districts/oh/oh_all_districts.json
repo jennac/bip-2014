@@ -296,7 +296,7 @@
     "OLIVE", 
     "COLLEGE", 
     "CRANE", 
-    "BOARDMAN", 
+    "MAN", 
     "TOWNSHIP AUGLAIZE", 
     "CHATFIELD", 
     "PAINESVILLE", 
@@ -728,6 +728,19 @@
     "009", 
     "008"
   ], 
+  "state_school_board_districts": [
+    "01",
+    "02",
+    "03",
+    "04",
+    "05",
+    "06",
+    "07",
+    "08",
+    "09", 
+    "10",
+    "11"
+  ],
   "vf_school_district": [
     "CRESTVIEW LOCAL SD", 
     "INDIAN LAKE LOCAL SD", 

@@ -1,4 +1,11 @@
 {
+  "equalization_district": [
+    "001", 
+    "002",
+    "003",
+    "004"
+    ],
+    
   "vf_county_name": [
     "MONTEREY", 
     "SONOMA", 

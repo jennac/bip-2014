@@ -1,5 +1,12 @@
 {
-  "vf_county_name": [
+  "public_service_districts": [
+    "PS0001",
+    "PS0002",
+    "PS0003",
+    "PS0004",
+    "PS0005"
+  ],
+ "vf_county_name": [
     "FILLMORE", 
     "ADAMS", 
     "HAYES", 
